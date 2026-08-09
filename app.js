@@ -1,5 +1,5 @@
-import { evaluateMatch, parseHex, safeFilenameToken, solveAdaptive, toHex } from './color-engine.js';
-import { SAVED_COLOR_MATCHES } from './saved-colors.js';
+import { evaluateMatch, parseHex, safeFilenameToken, solveAdaptive, toHex } from './color-engine.js?v=20260809-1';
+import { SAVED_COLOR_MATCHES } from './saved-colors.js?v=20260809-1';
 
 const STORAGE = {
   history: 'stickermatch.calibration-history.v1'
