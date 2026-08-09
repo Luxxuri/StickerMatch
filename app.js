@@ -27,6 +27,8 @@ const elements = {
   calculate: byId('calculate-button'),
   resultCard: byId('result-card'),
   resultHex: byId('result-hex'),
+  resultRgb: byId('result-rgb'),
+  resultSwatch: byId('result-swatch'),
   resultStrategy: byId('result-strategy'),
   matchName: byId('match-name'),
   savedColors: byId('saved-colors')
@@ -55,7 +57,7 @@ function saveJson(key, value) {
 
 function setStatus(message, type = '') {
   elements.status.textContent = message;
-  elements.status.className = `status${type ? ` ${type}` : ''}`;
+  elements.status.className = `status-bar${type ? ` ${type}` : ''}`;
 }
 
 function currentColors() {
@@ -97,7 +99,7 @@ function updateMatchScore() {
   const { target, rendered } = currentColors();
   if (!target || !rendered) return;
   const match = evaluateMatch(target, rendered);
-  elements.matchScore.textContent = `${Math.round(match.percentage)}% · ${match.rating}`;
+  elements.matchScore.textContent = `Match: ${Math.round(match.percentage)}% • ${match.rating}`;
   elements.matchDelta.textContent = `ΔE ${match.deltaE.toFixed(2)}`;
 }
 
@@ -297,7 +299,10 @@ function calculateCorrection() {
   saveJson(STORAGE.history, calibrationHistory);
   elements.syncTarget.checked = false;
   setColor('background', result.corrected);
-  elements.resultHex.textContent = toHex(result.corrected);
+  const correctedHex = toHex(result.corrected);
+  elements.resultHex.textContent = correctedHex;
+  elements.resultRgb.textContent = `RGB ${result.corrected.r}, ${result.corrected.g}, ${result.corrected.b}`;
+  elements.resultSwatch.style.backgroundColor = correctedHex;
   elements.resultStrategy.textContent = result.warning ? `${result.strategy}. ${result.warning}` : result.strategy;
   elements.resultCard.hidden = false;
   lastExport = null;
