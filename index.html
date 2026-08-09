@@ -10,132 +10,112 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="./" aria-label="StickerMatch home">
-      <span class="brand-mark" aria-hidden="true"></span>
+  <div class="app-window">
+    <header class="title-bar">
       <span>StickerMatch</span>
-    </a>
-    <div class="privacy-pill">Your images and matches stay in this browser</div>
-  </header>
+      <span class="browser-label">Browser edition</span>
+    </header>
 
-  <main class="shell">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">Browser edition</p>
-        <h1>Match once. Reuse the color on every sticker.</h1>
-        <p>Import a transparent PNG, correct the rendered background, save the match, and use it again without repeating the calibration.</p>
+    <nav class="tool-bar" aria-label="Sticker commands">
+      <div class="tool-actions">
+        <label class="button secondary file-button">
+          <input id="image-input" type="file" accept="image/png,image/webp,image/jpeg">
+          Import PNG
+        </label>
+        <button id="export-button" class="button primary" disabled>Export PNG</button>
       </div>
-      <label class="button primary import-button">
-        <input id="image-input" type="file" accept="image/png,image/webp,image/jpeg">
-        Import sticker
-      </label>
-    </section>
+      <div class="local-note"><span class="local-dot"></span>Files stay on this device</div>
+    </nav>
 
-    <div id="status" class="status" role="status" aria-live="polite">Import a transparent sticker to get started.</div>
-
-    <div class="workspace">
-      <section class="panel preview-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Sticker</p>
-            <h2>Preview</h2>
-          </div>
-          <span id="image-info" class="muted">No image loaded</span>
-        </div>
-        <div id="drop-zone" class="preview-stage">
+    <main class="app-content">
+      <section class="card image-panel">
+        <h1>Image</h1>
+        <div id="drop-zone" class="image-preview">
           <canvas id="preview-canvas" width="640" height="480" aria-label="Sticker preview"></canvas>
-          <div id="preview-empty" class="preview-empty">
-            <strong>Drop a PNG here</strong>
-            <span>or use Import sticker</span>
+          <div id="preview-empty" class="preview-placeholder">
+            <span>No image loaded</span>
+            <small>Drop a PNG here</small>
           </div>
         </div>
-        <div class="row wrap">
-          <button id="export-button" class="button primary" disabled>Export PNG</button>
-          <span id="export-name" class="muted">Nothing exported yet</span>
+        <div class="image-details">
+          <strong id="image-info">No image loaded</strong>
+          <span id="export-name">No export created</span>
+          <span>Exports download through your browser</span>
         </div>
       </section>
 
-      <section class="panel calibration-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Calibration</p>
-            <h2>Color match</h2>
+      <div class="controls-column">
+        <section class="card calibration-panel">
+          <div class="section-heading">
+            <h1>Calibration</h1>
+            <span>Adaptive perceptual history</span>
           </div>
-          <button id="clear-history" class="button ghost small">Clear history</button>
-        </div>
 
-        <div class="color-list">
-          <div class="color-row">
+          <div class="calibration-grid">
             <label for="target-hex">Target</label>
-            <input id="target-color" class="color-chip" type="color" value="#323339" aria-label="Target color picker">
+            <input id="target-color" class="color-swatch" type="color" value="#323339" aria-label="Target color picker">
             <input id="target-hex" class="hex-input" value="#323339" maxlength="7" spellcheck="false">
             <button class="button secondary pick-button" data-role="target">Pick from screen</button>
-          </div>
-          <div class="color-row">
+
             <label for="rendered-hex">Rendered</label>
-            <input id="rendered-color" class="color-chip" type="color" value="#33343a" aria-label="Rendered color picker">
+            <input id="rendered-color" class="color-swatch" type="color" value="#33343a" aria-label="Rendered color picker">
             <input id="rendered-hex" class="hex-input" value="#33343A" maxlength="7" spellcheck="false">
             <button class="button secondary pick-button" data-role="rendered">Pick from screen</button>
-          </div>
-          <div class="color-row">
+
             <label for="background-hex">Background</label>
-            <input id="background-color" class="color-chip" type="color" value="#323339" aria-label="Background color picker">
+            <input id="background-color" class="color-swatch" type="color" value="#323339" aria-label="Background color picker">
             <input id="background-hex" class="hex-input" value="#323339" maxlength="7" spellcheck="false">
-            <button class="button secondary pick-button" data-role="background">Pick from screen</button>
-          </div>
-        </div>
+            <label class="check-label">
+              <input id="sync-target" type="checkbox" checked>
+              <span>Use target for first export</span>
+            </label>
 
-        <label class="check-row">
-          <input id="sync-target" type="checkbox" checked>
-          <span>Use target for the first export</span>
-        </label>
+            <label for="match-name">Match name</label>
+            <input id="match-name" class="name-input" type="text" maxlength="80" placeholder="Tan">
+            <button id="save-color" class="button secondary save-button">Save match</button>
 
-        <div class="match-card">
-          <div>
-            <span class="muted">Target vs. rendered</span>
-            <strong id="match-score">98% · Excellent</strong>
-          </div>
-          <span id="match-delta" class="metric">ΔE 0.39</span>
-        </div>
-
-        <button id="calculate-button" class="button primary wide">Calculate correction</button>
-        <div id="result-card" class="result-card" hidden>
-          <div>
-            <span class="muted">Corrected background</span>
-            <strong id="result-hex">#323339</strong>
-          </div>
-          <button id="copy-result" class="button secondary small">Copy</button>
-          <p id="result-strategy"></p>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="saved-grid">
-          <label>
-            <span>Match name</span>
-            <input id="match-name" type="text" maxlength="80" placeholder="Tan">
-          </label>
-          <label>
-            <span>Saved colors</span>
-            <select id="saved-colors">
+            <label for="saved-colors">Saved colors</label>
+            <select id="saved-colors" class="saved-select">
               <option value="">No saved colors</option>
             </select>
-          </label>
-        </div>
-        <div class="row wrap">
-          <button id="save-color" class="button secondary">Save match</button>
-          <button id="load-color" class="button secondary">Load</button>
-          <button id="delete-color" class="button danger">Delete</button>
-        </div>
-      </section>
-    </div>
+            <div class="saved-actions">
+              <button id="load-color" class="button secondary">Load</button>
+              <button id="delete-color" class="button secondary">Delete</button>
+            </div>
+          </div>
 
-  </main>
+          <div class="calculate-row">
+            <span>Uses measurements saved in this browser</span>
+            <button id="calculate-button" class="button primary calculate-button">Calculate</button>
+          </div>
+        </section>
 
-  <footer>
-    <span>StickerMatch runs locally in your browser. No analytics, accounts, or network uploads.</span>
-    <a href="README.md">How to use it</a>
-  </footer>
+        <section id="result-card" class="card result-panel">
+          <div id="result-swatch" class="result-swatch"></div>
+          <div class="result-copy">
+            <span class="result-label">Result</span>
+            <strong id="result-hex">#323339</strong>
+            <span id="result-rgb" class="result-rgb">RGB 50, 51, 57</span>
+            <div class="match-line">
+              <b id="match-score">Match: 98% • Excellent</b>
+              <span id="match-delta">ΔE 0.39</span>
+            </div>
+            <p id="result-strategy">No correction calculated yet.</p>
+          </div>
+          <div class="result-actions">
+            <button id="copy-result" class="button secondary">Copy HEX</button>
+          </div>
+        </section>
+
+        <section class="card history-panel">
+          <span>Calibration history is stored locally in this browser</span>
+          <button id="clear-history" class="button secondary">Clear history</button>
+        </section>
+      </div>
+    </main>
+
+    <footer id="status" class="status-bar" role="status" aria-live="polite">Ready. Import a transparent sticker PNG to begin.</footer>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>
