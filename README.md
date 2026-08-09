@@ -1,6 +1,6 @@
 # StickerMatch
 
-StickerMatch is a browser tool for correcting sticker colors that change when they are loaded into Roblox. Your images, saved colors, and calibration history stay in your own browser.
+StickerMatch is a browser tool for correcting sticker colors that change when they are loaded into Roblox. Your images and calibration history stay in your own browser.
 
 ## Matching a color
 
@@ -13,13 +13,13 @@ StickerMatch is a browser tool for correcting sticker colors that change when th
 
 Chrome and Edge support the screen eyedropper. If your browser does not, enter the HEX color manually.
 
-## Saving a match
+## Built-in color matches
 
-When a color is finished, type a name such as `Tan` under **Match name** and click **Save match**.
+The website includes 23 color matches prepared in the desktop version of StickerMatch. Everyone gets the same list automatically.
 
-For the next sticker, choose Tan under **Saved colors**, click **Load**, import the new PNG, and export. The saved name is used in the filename instead of the HEX code.
+Choose a preset under **Saved colors**, click **Load**, import the PNG, and export. The preset name is used in the filename instead of the HEX code.
 
-Saved colors and calibration history use browser storage. Clearing the site's browser data removes them.
+The built-in presets cannot be changed from the website. Calibration history uses browser storage and may be removed if the site's browser data is cleared.
 
 ## Uploading to Roblox
 

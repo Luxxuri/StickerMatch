@@ -213,8 +213,7 @@ input:focus, select:focus { border-color: var(--accent); }
 
 .check-label input { width: 17px; min-height: 17px; margin: 0; padding: 0; accent-color: var(--accent); }
 
-.name-input, .saved-select { grid-column: 2 / 4; margin-right: 8px; }
-.save-button { grid-column: 4; justify-self: start; }
+.saved-select { grid-column: 2 / 4; margin-right: 8px; }
 .saved-actions { grid-column: 4; display: flex; gap: 5px; }
 
 .calculate-row {
@@ -297,8 +296,8 @@ input:focus, select:focus { border-color: var(--accent); }
   .local-note { display: none; }
   .app-content { padding: 8px; }
   .calibration-grid { grid-template-columns: 76px 56px minmax(100px, 1fr); gap: 8px 0; }
-  .calibration-grid .pick-button, .calibration-grid .check-label, .save-button, .saved-actions { grid-column: 2 / 4; }
-  .name-input, .saved-select { grid-column: 2 / 4; }
+  .calibration-grid .pick-button, .calibration-grid .check-label, .saved-actions { grid-column: 2 / 4; }
+  .saved-select { grid-column: 2 / 4; }
   .result-panel { grid-template-columns: 82px minmax(0, 1fr); }
   .result-swatch { width: 82px; height: 82px; }
   .result-actions { grid-column: 1 / -1; }
