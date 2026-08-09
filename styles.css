@@ -120,33 +120,16 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px r
 
 .check-row { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 13px; margin-top: 12px; }
 .check-row input { width: 17px; min-height: 17px; accent-color: var(--accent); }
-.match-card, .result-card, .texture-result { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px; margin-top: 16px; border: 1px solid var(--line); border-radius: 11px; background: rgba(9,12,17,.48); }
-.match-card div, .result-card div, .texture-result div { display: grid; gap: 4px; }
+.match-card, .result-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px; margin-top: 16px; border: 1px solid var(--line); border-radius: 11px; background: rgba(9,12,17,.48); }
+.match-card div, .result-card div { display: grid; gap: 4px; }
 .match-card strong { font-size: 15px; }
 .metric { color: #b9c6da; font-family: "Cascadia Mono", Consolas, monospace; font-size: 13px; }
 .result-card { flex-wrap: wrap; border-color: rgba(107,140,255,.35); }
-.result-card strong, .texture-result strong { font-family: "Cascadia Mono", Consolas, monospace; font-size: 20px; }
+.result-card strong { font-family: "Cascadia Mono", Consolas, monospace; font-size: 20px; }
 .result-card p { flex: 0 0 100%; color: var(--muted); font-size: 12px; margin: 0; }
 .divider { height: 1px; background: var(--line); margin: 20px 0; }
-.saved-grid, .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.saved-grid label, .setup-grid label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
-
-.roblox-panel { margin-top: 18px; }
-.section-copy { margin: -8px 0 18px; color: var(--muted); line-height: 1.6; }
-.connection-state { padding: 6px 10px; color: var(--muted); background: #0e1218; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; }
-.connection-state.connected { color: var(--success); border-color: rgba(94,211,154,.35); }
-details { border: 1px solid var(--line); border-radius: 11px; background: rgba(9,12,17,.35); }
-summary { padding: 14px 15px; cursor: pointer; font-weight: 700; }
-details[open] summary { border-bottom: 1px solid var(--line); }
-.setup-grid { padding: 16px 16px 0; }
-.redirect-field { grid-column: 1 / -1; }
-.input-action { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-.help { color: var(--muted); padding: 0 16px; font-size: 13px; line-height: 1.55; }
-.help code { color: #c8d3ff; }
-details > .row { padding: 0 16px 16px; }
-.roblox-actions { display: flex; gap: 10px; margin-top: 16px; }
-.texture-result { border-color: rgba(94,211,154,.3); }
-.texture-result small { color: var(--muted); }
+.saved-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.saved-grid label { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
 
 footer { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0 40px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 24px; color: var(--muted); font-size: 12px; }
 footer a { color: #b7c5ff; }
@@ -164,8 +147,6 @@ footer a { color: #b7c5ff; }
   .panel { padding: 15px; border-radius: 13px; }
   .color-row { grid-template-columns: 66px 38px 1fr; }
   .color-row .pick-button { grid-column: 2 / -1; }
-  .saved-grid, .setup-grid { grid-template-columns: 1fr; }
-  .redirect-field { grid-column: auto; }
-  .roblox-actions, footer { flex-direction: column; }
-  .roblox-actions .button { width: 100%; }
+  .saved-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; }
 }

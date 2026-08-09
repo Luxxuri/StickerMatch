@@ -2,8 +2,7 @@ import { evaluateMatch, parseHex, safeFilenameToken, solveAdaptive, toHex } from
 
 const STORAGE = {
   colors: 'stickermatch.saved-colors.v1',
-  history: 'stickermatch.calibration-history.v1',
-  roblox: 'stickermatch.roblox-oauth.v1'
+  history: 'stickermatch.calibration-history.v1'
 };
 
 const byId = id => document.getElementById(id);
@@ -30,25 +29,12 @@ const elements = {
   resultHex: byId('result-hex'),
   resultStrategy: byId('result-strategy'),
   matchName: byId('match-name'),
-  savedColors: byId('saved-colors'),
-  robloxState: byId('roblox-state'),
-  robloxSetup: byId('roblox-setup'),
-  oauthClientId: byId('oauth-client-id'),
-  creatorType: byId('creator-type'),
-  creatorId: byId('creator-id'),
-  creatorIdLabel: byId('creator-id-label'),
-  redirectUrl: byId('redirect-url'),
-  robloxLogin: byId('roblox-login'),
-  robloxUpload: byId('roblox-upload'),
-  textureResult: byId('texture-result'),
-  textureId: byId('texture-id'),
-  moderationState: byId('moderation-state')
+  savedColors: byId('saved-colors')
 };
 
 const previewContext = elements.preview.getContext('2d', { alpha: false });
 let savedColors = loadJson(STORAGE.colors, []);
 let calibrationHistory = loadJson(STORAGE.history, []);
-let robloxSettings = loadJson(STORAGE.roblox, { clientId: '', creatorType: 'User', creatorId: '' });
 let activeSavedColor = null;
 let sticker = null;
 let lastExport = null;
@@ -226,7 +212,6 @@ async function loadSticker(file) {
   elements.imageInfo.textContent = `${file.name} · ${sticker.width} × ${sticker.height}`;
   elements.exportName.textContent = 'Ready to export';
   drawPreview();
-  updateRobloxButtons();
   setStatus(activeSavedColor ? `Sticker loaded with saved color “${activeSavedColor.name}”.` : 'Sticker loaded. Export it, test it, then pick the rendered color.', 'success');
 }
 
@@ -271,8 +256,6 @@ async function exportSticker() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   lastExport = { blob, name, background: toHex(background) };
   elements.exportName.textContent = name;
-  elements.textureResult.hidden = true;
-  updateRobloxButtons();
   setStatus(`Exported ${name}. Test that file, then pick the rendered background.`, 'success');
 }
 
@@ -318,7 +301,6 @@ function calculateCorrection() {
   elements.resultStrategy.textContent = result.warning ? `${result.strategy}. ${result.warning}` : result.strategy;
   elements.resultCard.hidden = false;
   lastExport = null;
-  updateRobloxButtons();
   setStatus(result.matched ? 'The measured color is already within tolerance.' : 'Correction ready. Export this background and test it again.', 'success');
 }
 
@@ -344,246 +326,10 @@ function copyText(value, successMessage) {
   );
 }
 
-function getRedirectUri() {
-  const url = new URL('.', window.location.href);
-  url.search = '';
-  url.hash = '';
-  return url.href;
-}
-
-function refreshRobloxSettings() {
-  elements.oauthClientId.value = robloxSettings.clientId || '';
-  elements.creatorType.value = robloxSettings.creatorType === 'Group' ? 'Group' : 'User';
-  elements.creatorId.value = robloxSettings.creatorId || '';
-  elements.redirectUrl.value = getRedirectUri();
-  updateCreatorLabel();
-  updateRobloxButtons();
-}
-
-function updateCreatorLabel() {
-  elements.creatorIdLabel.textContent = elements.creatorType.value === 'Group' ? 'Roblox group ID' : 'Roblox user ID';
-}
-
-function saveRobloxSettings() {
-  const clientId = elements.oauthClientId.value.trim();
-  const creatorId = elements.creatorId.value.trim();
-  if (clientId && !/^\d+$/.test(clientId)) {
-    setStatus('The OAuth client ID must be numeric.', 'error');
-    return false;
-  }
-  if (creatorId && !/^\d+$/.test(creatorId)) {
-    setStatus('The Roblox creator ID must be numeric.', 'error');
-    return false;
-  }
-  robloxSettings = { clientId, creatorType: elements.creatorType.value, creatorId };
-  saveJson(STORAGE.roblox, robloxSettings);
-  setStatus('Roblox OAuth setup saved in this browser.', 'success');
-  return true;
-}
-
-function base64Url(bytes) {
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-}
-
-async function robloxLogin() {
-  if (!saveRobloxSettings()) return;
-  if (!robloxSettings.clientId) {
-    elements.robloxSetup.open = true;
-    setStatus('Enter the OAuth client ID before signing in.', 'error');
-    return;
-  }
-  if (!window.isSecureContext) {
-    setStatus('Roblox sign-in requires the secure GitHub Pages site.', 'error');
-    return;
-  }
-  const verifier = base64Url(crypto.getRandomValues(new Uint8Array(64)));
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = base64Url(new Uint8Array(digest));
-  const state = base64Url(crypto.getRandomValues(new Uint8Array(24)));
-  sessionStorage.setItem('stickermatch.oauth-verifier', verifier);
-  sessionStorage.setItem('stickermatch.oauth-state', state);
-  const authorize = new URL('https://apis.roblox.com/oauth/v1/authorize');
-  authorize.search = new URLSearchParams({
-    client_id: robloxSettings.clientId,
-    redirect_uri: getRedirectUri(),
-    scope: 'openid asset:read asset:write',
-    response_type: 'code',
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-    state
-  });
-  window.location.assign(authorize);
-}
-
-function activeAccessToken() {
-  const token = sessionStorage.getItem('stickermatch.oauth-access-token');
-  const expires = Number(sessionStorage.getItem('stickermatch.oauth-expires') || 0);
-  return token && Date.now() < expires ? token : null;
-}
-
-async function handleOAuthCallback() {
-  const query = new URLSearchParams(window.location.search);
-  if (query.has('error')) {
-    setStatus(`Roblox sign-in was not completed: ${query.get('error_description') || query.get('error')}`, 'error');
-    history.replaceState({}, '', getRedirectUri());
-    return;
-  }
-  const code = query.get('code');
-  if (!code) return;
-  const state = query.get('state');
-  const expectedState = sessionStorage.getItem('stickermatch.oauth-state');
-  const verifier = sessionStorage.getItem('stickermatch.oauth-verifier');
-  if (!state || state !== expectedState || !verifier || !robloxSettings.clientId) {
-    setStatus('Roblox sign-in could not be verified. Start the sign-in again.', 'error');
-    history.replaceState({}, '', getRedirectUri());
-    return;
-  }
-  setStatus('Finishing Roblox sign-in…');
-  try {
-    const response = await fetch('https://apis.roblox.com/oauth/v1/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: robloxSettings.clientId,
-        code,
-        code_verifier: verifier,
-        grant_type: 'authorization_code',
-        redirect_uri: getRedirectUri()
-      })
-    });
-    const body = await response.json();
-    if (!response.ok || !body.access_token) throw new Error(body.error_description || body.error || `HTTP ${response.status}`);
-    sessionStorage.setItem('stickermatch.oauth-access-token', body.access_token);
-    sessionStorage.setItem('stickermatch.oauth-expires', String(Date.now() + Math.max(60, (body.expires_in || 900) - 30) * 1000));
-    sessionStorage.removeItem('stickermatch.oauth-state');
-    sessionStorage.removeItem('stickermatch.oauth-verifier');
-    history.replaceState({}, '', getRedirectUri());
-    await fillSignedInUser(body.access_token);
-    setStatus('Connected to Roblox for this browser session.', 'success');
-  } catch (error) {
-    history.replaceState({}, '', getRedirectUri());
-    setStatus(`Roblox sign-in failed: ${error.message}`, 'error');
-  }
-  updateRobloxButtons();
-}
-
-async function fillSignedInUser(token) {
-  try {
-    const response = await fetch('https://apis.roblox.com/oauth/v1/userinfo', { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) return;
-    const user = await response.json();
-    if (robloxSettings.creatorType === 'User' && user.sub) {
-      robloxSettings.creatorId = String(user.sub);
-      saveJson(STORAGE.roblox, robloxSettings);
-      elements.creatorId.value = robloxSettings.creatorId;
-    }
-  } catch {
-    // The creator ID can still be entered manually.
-  }
-}
-
-function updateRobloxButtons() {
-  const connected = Boolean(activeAccessToken());
-  elements.robloxState.textContent = connected ? 'Connected' : 'Not connected';
-  elements.robloxState.classList.toggle('connected', connected);
-  elements.robloxLogin.textContent = connected ? 'Reconnect Roblox' : 'Sign in with Roblox';
-  elements.robloxUpload.disabled = !connected || !lastExport;
-}
-
-function readRobloxError(body, fallback) {
-  if (typeof body?.message === 'string') return body.message;
-  if (typeof body?.error?.message === 'string') return body.error.message;
-  if (typeof body?.errorMessage === 'string') return body.errorMessage;
-  if (Array.isArray(body?.errors) && body.errors[0]?.message) return body.errors[0].message;
-  return fallback;
-}
-
-async function uploadTexture() {
-  const token = activeAccessToken();
-  if (!token) {
-    setStatus('Sign in with Roblox again before uploading.', 'error');
-    updateRobloxButtons();
-    return;
-  }
-  if (!lastExport) {
-    setStatus('Export the current sticker before creating a texture.', 'error');
-    return;
-  }
-  if (!saveRobloxSettings()) return;
-  if (!/^\d+$/.test(robloxSettings.creatorId)) {
-    elements.robloxSetup.open = true;
-    setStatus(`Enter a valid Roblox ${robloxSettings.creatorType === 'Group' ? 'group' : 'user'} ID.`, 'error');
-    return;
-  }
-  const creator = robloxSettings.creatorType === 'Group'
-    ? { groupId: robloxSettings.creatorId }
-    : { userId: robloxSettings.creatorId };
-  const metadata = {
-    assetType: 'Image',
-    displayName: lastExport.name.replace(/\.png$/i, '').slice(0, 50),
-    description: 'Created by StickerMatch',
-    creationContext: { creator }
-  };
-  const form = new FormData();
-  form.append('request', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('fileContent', lastExport.blob, lastExport.name);
-  elements.robloxUpload.disabled = true;
-  elements.textureResult.hidden = true;
-  setStatus(`Uploading ${lastExport.name} to Roblox…`);
-  try {
-    const response = await fetch('https://apis.roblox.com/assets/v1/assets', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: form
-    });
-    const body = await response.json();
-    if (!response.ok) throw new Error(readRobloxError(body, `HTTP ${response.status}`));
-    const operationPath = body.path;
-    if (!operationPath) throw new Error('Roblox accepted the file but did not return an operation ID.');
-    const asset = await waitForTexture(operationPath, token);
-    const textureId = String(asset.assetId || '');
-    if (!/^\d+$/.test(textureId)) throw new Error('Roblox completed the upload without a texture ID.');
-    if (asset.assetType && !String(asset.assetType).toUpperCase().endsWith('IMAGE')) throw new Error('Roblox returned a non-image asset.');
-    elements.textureId.textContent = textureId;
-    elements.moderationState.textContent = formatModeration(asset.moderationResult?.moderationState || 'Processing');
-    elements.textureResult.hidden = false;
-    setStatus(`Roblox texture created. Texture ID: ${textureId}`, 'success');
-  } catch (error) {
-    setStatus(`Roblox upload failed: ${error.message}`, 'error');
-  } finally {
-    updateRobloxButtons();
-  }
-}
-
-async function waitForTexture(operationPath, token) {
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    if (attempt) await new Promise(resolve => setTimeout(resolve, 1000));
-    const response = await fetch(`https://apis.roblox.com/assets/v1/${operationPath.replace(/^\//, '')}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const body = await response.json();
-    if (!response.ok) throw new Error(readRobloxError(body, `HTTP ${response.status}`));
-    if (body.error) throw new Error(readRobloxError(body.error, 'The asset operation failed.'));
-    if (body.done) {
-      if (!body.response) throw new Error('The upload completed without texture information.');
-      return body.response;
-    }
-  }
-  throw new Error('Roblox is still processing the texture. Try again in a moment.');
-}
-
-function formatModeration(value) {
-  const readable = String(value).replace(/^MODERATION_STATE_/i, '').replaceAll('_', ' ').toLowerCase();
-  return `Moderation: ${readable.charAt(0).toUpperCase()}${readable.slice(1)}`;
-}
-
 bindColor('target');
 bindColor('rendered');
 bindColor('background');
 refreshSavedColors();
-refreshRobloxSettings();
 updateMatchScore();
 
 elements.imageInput.addEventListener('change', () => loadSticker(elements.imageInput.files[0]));
@@ -612,12 +358,3 @@ byId('clear-history').addEventListener('click', () => {
     setStatus('Calibration history cleared.');
   }
 });
-elements.creatorType.addEventListener('change', updateCreatorLabel);
-byId('save-roblox-settings').addEventListener('click', saveRobloxSettings);
-byId('copy-redirect').addEventListener('click', () => copyText(elements.redirectUrl.value, 'Copied the OAuth redirect URL.'));
-elements.robloxLogin.addEventListener('click', robloxLogin);
-elements.robloxUpload.addEventListener('click', uploadTexture);
-byId('copy-texture-id').addEventListener('click', () => copyText(elements.textureId.textContent, `Copied texture ID ${elements.textureId.textContent}.`));
-
-await handleOAuthCallback();
-updateRobloxButtons();

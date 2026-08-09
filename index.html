@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; connect-src https://apis.roblox.com; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://apis.roblox.com">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; connect-src 'none'; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>StickerMatch</title>
-  <meta name="description" content="Match sticker colors, reuse saved matches, export PNGs, and create Roblox textures from your browser.">
+  <meta name="description" content="Match sticker colors, reuse saved matches, and export ready-to-upload PNGs from your browser.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,7 +23,7 @@
       <div>
         <p class="eyebrow">Browser edition</p>
         <h1>Match once. Reuse the color on every sticker.</h1>
-        <p>Import a transparent PNG, correct the background Roblox renders, save the match, and use it again without repeating the calibration.</p>
+        <p>Import a transparent PNG, correct the rendered background, save the match, and use it again without repeating the calibration.</p>
       </div>
       <label class="button primary import-button">
         <input id="image-input" type="file" accept="image/png,image/webp,image/jpeg">
@@ -130,67 +130,10 @@
       </section>
     </div>
 
-    <section class="panel roblox-panel">
-      <div class="panel-heading">
-        <div>
-          <p class="eyebrow">Optional</p>
-          <h2>Create a Roblox texture</h2>
-        </div>
-        <span id="roblox-state" class="connection-state">Not connected</span>
-      </div>
-      <p class="section-copy">Roblox sign-in uses OAuth with PKCE. StickerMatch never receives your password, browser cookie, API key, or client secret.</p>
-
-      <details id="roblox-setup">
-        <summary>Roblox OAuth setup</summary>
-        <div class="setup-grid">
-          <label>
-            <span>OAuth client ID</span>
-            <input id="oauth-client-id" type="text" inputmode="numeric" autocomplete="off" placeholder="Client ID">
-          </label>
-          <label>
-            <span>Creator</span>
-            <select id="creator-type">
-              <option value="User">My user account</option>
-              <option value="Group">Group</option>
-            </select>
-          </label>
-          <label>
-            <span id="creator-id-label">Roblox user ID</span>
-            <input id="creator-id" type="text" inputmode="numeric" autocomplete="off" placeholder="Numeric ID">
-          </label>
-          <label class="redirect-field">
-            <span>OAuth redirect URL</span>
-            <div class="input-action">
-              <input id="redirect-url" type="text" readonly>
-              <button id="copy-redirect" class="button secondary small">Copy</button>
-            </div>
-          </label>
-        </div>
-        <p class="help">Create a Roblox OAuth app, add the redirect URL above, and enable <code>openid</code>, <code>asset:read</code>, and <code>asset:write</code>. The client ID is public by design; never enter a client secret here.</p>
-        <div class="row wrap">
-          <a class="button secondary" href="https://create.roblox.com/docs/cloud/auth/oauth2-registration" target="_blank" rel="noreferrer">Open setup guide</a>
-          <button id="save-roblox-settings" class="button secondary">Save setup</button>
-        </div>
-      </details>
-
-      <div class="roblox-actions">
-        <button id="roblox-login" class="button secondary">Sign in with Roblox</button>
-        <button id="roblox-upload" class="button primary" disabled>Create texture</button>
-      </div>
-
-      <div id="texture-result" class="texture-result" hidden>
-        <div>
-          <span>Texture ID</span>
-          <strong id="texture-id"></strong>
-          <small id="moderation-state"></small>
-        </div>
-        <button id="copy-texture-id" class="button primary">Copy texture ID</button>
-      </div>
-    </section>
   </main>
 
   <footer>
-    <span>StickerMatch runs locally in your browser. No analytics and no image uploads except when you choose Roblox.</span>
+    <span>StickerMatch runs locally in your browser. No analytics, accounts, or network uploads.</span>
     <a href="README.md">How to use it</a>
   </footer>
 

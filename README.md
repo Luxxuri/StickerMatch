@@ -21,21 +21,10 @@ For the next sticker, choose Tan under **Saved colors**, click **Load**, import 
 
 Saved colors and calibration history use browser storage. Clearing the site's browser data removes them.
 
-## Roblox texture setup
+## Uploading to Roblox
 
-The browser version uses Roblox OAuth instead of API keys.
-
-1. Follow the [Roblox OAuth app registration guide](https://create.roblox.com/docs/cloud/auth/oauth2-registration).
-2. Create a public client and add the redirect URL shown under **Roblox OAuth setup**.
-3. Add the `openid`, `asset:read`, and `asset:write` permissions.
-4. Paste the OAuth client ID into StickerMatch. Do not enter a client secret.
-5. Choose your user account or group and enter its numeric ID.
-6. Click **Sign in with Roblox** and approve the requested asset access.
-
-After exporting a sticker, click **Create texture**. The result gives you the directly usable texture ID and a copy button.
-
-Roblox access tokens last only for the current browser session. StickerMatch never asks for a Roblox password, browser cookie, API key, or client secret.
+StickerMatch downloads the finished PNG to your computer. Upload that PNG manually through Roblox Creator Dashboard or Studio. The browser tool does not connect to Roblox and never asks you to sign in.
 
 ## Privacy
 
-There are no analytics. Images are processed locally and are only sent anywhere when you click **Create texture**, which sends the most recent export directly to Roblox.
+There are no analytics, accounts, or network uploads. Images are processed locally and downloaded directly by your browser.
