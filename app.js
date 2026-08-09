@@ -1,7 +1,7 @@
 import { evaluateMatch, parseHex, safeFilenameToken, solveAdaptive, toHex } from './color-engine.js';
+import { SAVED_COLOR_MATCHES } from './saved-colors.js';
 
 const STORAGE = {
-  colors: 'stickermatch.saved-colors.v1',
   history: 'stickermatch.calibration-history.v1'
 };
 
@@ -30,12 +30,10 @@ const elements = {
   resultRgb: byId('result-rgb'),
   resultSwatch: byId('result-swatch'),
   resultStrategy: byId('result-strategy'),
-  matchName: byId('match-name'),
   savedColors: byId('saved-colors')
 };
 
 const previewContext = elements.preview.getContext('2d', { alpha: false });
-let savedColors = loadJson(STORAGE.colors, []);
 let calibrationHistory = loadJson(STORAGE.history, []);
 let activeSavedColor = null;
 let sticker = null;
@@ -112,72 +110,24 @@ function checkActiveSavedColor() {
 }
 
 function refreshSavedColors(selectedName = '') {
-  savedColors.sort((left, right) => left.name.localeCompare(right.name));
   elements.savedColors.replaceChildren();
-  if (!savedColors.length) {
-    elements.savedColors.add(new Option('No saved colors', ''));
-    return;
-  }
-  elements.savedColors.add(new Option('Choose a saved color', ''));
-  for (const match of savedColors) elements.savedColors.add(new Option(match.name, match.name));
+  elements.savedColors.add(new Option(`Choose from ${SAVED_COLOR_MATCHES.length} colors`, ''));
+  for (const match of [...SAVED_COLOR_MATCHES].sort((left, right) => left.name.localeCompare(right.name)))
+    elements.savedColors.add(new Option(match.name, match.name));
   elements.savedColors.value = selectedName;
 }
 
-function saveColorMatch() {
-  const name = elements.matchName.value.trim();
-  const { target, background } = currentColors();
-  if (!name) {
-    setStatus('Enter a name in Match name before saving.', 'error');
-    elements.matchName.focus();
-    return;
-  }
-  if (!target || !background) {
-    setStatus('Target and background must contain valid HEX colors.', 'error');
-    return;
-  }
-  let match = savedColors.find(item => item.name.toLowerCase() === name.toLowerCase());
-  if (!match) {
-    match = {};
-    savedColors.push(match);
-  }
-  Object.assign(match, {
-    name,
-    targetHex: toHex(target),
-    backgroundHex: toHex(background),
-    savedUtc: new Date().toISOString()
-  });
-  saveJson(STORAGE.colors, savedColors);
-  activeSavedColor = match;
-  refreshSavedColors(name);
-  setStatus(`Saved color match “${name}”.`, 'success');
-}
-
 function loadColorMatch() {
-  const match = savedColors.find(item => item.name === elements.savedColors.value);
+  const match = SAVED_COLOR_MATCHES.find(item => item.name === elements.savedColors.value);
   if (!match) {
     setStatus('Choose a saved color first.', 'error');
     return;
   }
   elements.syncTarget.checked = false;
-  elements.matchName.value = match.name;
   setColor('target', match.targetHex, false);
   setColor('background', match.backgroundHex, false);
   activeSavedColor = match;
   setStatus(`Loaded “${match.name}”. Import a sticker and export it immediately.`, 'success');
-}
-
-function deleteColorMatch() {
-  const name = elements.savedColors.value;
-  if (!name) {
-    setStatus('Choose a saved color first.', 'error');
-    return;
-  }
-  savedColors = savedColors.filter(item => item.name !== name);
-  saveJson(STORAGE.colors, savedColors);
-  if (activeSavedColor?.name === name) activeSavedColor = null;
-  elements.matchName.value = '';
-  refreshSavedColors();
-  setStatus(`Deleted “${name}”.`);
 }
 
 async function loadSticker(file) {
@@ -353,9 +303,7 @@ elements.syncTarget.addEventListener('change', () => {
 document.querySelectorAll('.pick-button').forEach(button => button.addEventListener('click', () => pickFromScreen(button.dataset.role)));
 if (!window.EyeDropper) document.querySelectorAll('.pick-button').forEach(button => { button.textContent = 'Enter manually'; button.disabled = true; });
 byId('copy-result').addEventListener('click', () => copyText(elements.resultHex.textContent, `Copied ${elements.resultHex.textContent}.`));
-byId('save-color').addEventListener('click', saveColorMatch);
 byId('load-color').addEventListener('click', loadColorMatch);
-byId('delete-color').addEventListener('click', deleteColorMatch);
 byId('clear-history').addEventListener('click', () => {
   if (!calibrationHistory.length || window.confirm('Clear all calibration history stored in this browser?')) {
     calibrationHistory = [];
